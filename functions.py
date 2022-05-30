@@ -1,19 +1,16 @@
-import csv
 import os
-from queue import Empty
 
 import cv2
 import numpy as np
 import pandas as pd
+from skimage.feature import hog
 from tqdm import tqdm
-
-import consts
 
 
 def partition_image(
-    img: cv2.Mat, horizontal_patch: int = 64, vertical_patch: int = 64
-) -> np.array:
-    """Partition a list of images symmetrically
+    img_list: list[cv2.Mat], horizontal_patch: int = 64, vertical_patch: int = 64
+) -> np.ndarray:
+    '''Partition a list of images symmetrically
     according to the provided patch dimensions
 
     Args:
@@ -23,19 +20,20 @@ def partition_image(
 
     Returns:
         List: The partitioned patches
-    """
+    '''
     patches = []
-    for x in range(0, img.shape[0] + 1 - horizontal_patch, horizontal_patch):
-        for y in range(0, img.shape[1] + 1 - vertical_patch, vertical_patch):
-            patch = img[x : x + horizontal_patch, y : y + vertical_patch]
-            vector = np.sum(patch, axis=1)
-            patches.append(vector)
+    for img in img_list:
+        for x in range(0, img.shape[0] + 1 - horizontal_patch, horizontal_patch):
+            for y in range(0, img.shape[1] + 1 - vertical_patch, vertical_patch):
+                patch = img[x : x + horizontal_patch, y : y + vertical_patch]
+                vector = np.sum(patch, axis=1)
+                patches.append(vector)
 
     return np.array(patches)
 
 
 def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray:
-    """Generate a kernel according to Cordelia Schmid's
+    '''Generate a kernel according to Cordelia Schmid's
     paper (inria-00548274) for a Gabor-like filter
 
     Args:
@@ -45,7 +43,7 @@ def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray
 
     Returns:
         np.array: Normalized kernel
-    """
+    '''
     end_point = int((kernel_size - 1) / 2)
     x = np.linspace(-end_point, end_point, kernel_size)
     y = np.linspace(-end_point, end_point, kernel_size)
@@ -66,7 +64,7 @@ def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray
     return f
 
 
-def apply_schmid_filter(img: cv2.Mat) -> cv2.Mat:
+def apply_schmid_filter(img: cv2.Mat) -> list[cv2.Mat]:
 
     schmid_kernel_size = 49
 
@@ -77,14 +75,15 @@ def apply_schmid_filter(img: cv2.Mat) -> cv2.Mat:
         [8, 2],
         [10, 2],
     ]
-
+    filtered_imgs_list = []
     for parameter_value in schmid_filter_parameter_values:
         kernel = generate_schmid_kernel(schmid_kernel_size, *parameter_value)
         filtered_img = cv2.filter2D(img, cv2.CV_8UC3, kernel)
-    return filtered_img
+        filtered_imgs_list.append(filtered_img)
+    return filtered_imgs_list
 
 
-def apply_gabor_filter(img: cv2.Mat) -> cv2.Mat:
+def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
     gabor_kernel_size = (15, 15)
 
     gabor_filter_parameter_values = [
@@ -113,27 +112,45 @@ def apply_gabor_filter(img: cv2.Mat) -> cv2.Mat:
             0.4,
         ],
     ]
-
+    filtered_img_list = []
     for parameter_value in gabor_filter_parameter_values:
         kernel = cv2.getGaborKernel(gabor_kernel_size, *parameter_value, 0)
         filtered_img = cv2.filter2D(img, cv2.CV_8UC3, kernel)
-    return filtered_img
+        filtered_img_list.append(filtered_img)
+    return filtered_img_list
 
 
-def load_preprocessed_data(method:str, reshape: bool = True) -> np.ndarray:
-    details_file = pd.read_csv("details.csv", header=0)
-    img_folders_df = pd.DataFrame(details_file, columns=[method])
+def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
+    hog_decriptor_parameter_values = [
+        [8, (16, 16)],
+        [8, (32, 32)],
+        [16, (16, 16)],
+        [15, (32, 32)],
+    ]
+    filtered_imgs_list = []
+    for parameter_value in hog_decriptor_parameter_values:
+        _, filtered_img = hog(
+            img,
+            orientations=parameter_value[0],
+            pixels_per_cell=parameter_value[1],
+            cells_per_block=(1, 1),
+            visualize=True,
+        )
+        filtered_imgs_list.append(filtered_img)
+
+    return filtered_imgs_list
+
+
+def load_preprocessed_data(descriptor: str) -> np.ndarray:
+    details_file = pd.read_csv('details.csv', header=0)
+    img_folders_df = pd.DataFrame(details_file, columns=[descriptor])
     vectors_list = []
-    for i in tqdm(range(len(img_folders_df)), desc="Loading the data"):
-        file_path = img_folders_df[method][i]
+    for i in tqdm(range(len(img_folders_df)), desc=f'Loading the {descriptor} preprocessed data'):
+        file_path = img_folders_df[descriptor][i]
         np_array = np.load(file_path)
         vectors_list.append(np_array)
 
     vectors_list = np.array(vectors_list)
-    if reshape:
-        vectors_list = vectors_list.reshape(
-            vectors_list.shape[0] * vectors_list.shape[1], vectors_list.shape[2]
-        )
     return vectors_list
 
 
@@ -147,15 +164,9 @@ def hist_match(query_hist, image_hist):
     return result
 
 
-def write_csv(new_data: dict):
-    with open("details.csv", mode="a") as csv_file:
-        writer = csv.DictWriter(csv_file, fieldnames=consts.fieldnames)
-        writer.writerow(new_data)
-
-
-def preprocess_image(img: cv2.Mat, descriptor: str = "original") -> cv2.Mat:
+def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if descriptor == "original":
+    if descriptor == 'original':
         # Apply Gabor filter
         filtered_gabor = apply_gabor_filter(img)
         # Apply Schmid filter
@@ -163,6 +174,12 @@ def preprocess_image(img: cv2.Mat, descriptor: str = "original") -> cv2.Mat:
         # Merge the 2 filtered Images
         filtered_img = filtered_gabor + filtered_shmid
         return filtered_img
+    elif descriptor == 'hog':
+        filtered_img = apply_hog_descriptor(img)
+        return filtered_img
+
+    else:
+        raise ValueError('The value you entered is not exist')
 
 
 def create_dirs(*paths, dir_path: str = '') -> str:

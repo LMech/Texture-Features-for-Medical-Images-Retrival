@@ -10,23 +10,25 @@ import consts
 import functions
 
 
-def search_query(img_path: str, imgs_num: int = 10, method: str = 'original'):
+def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
 
-    model_path = os.path.join(consts.models_path, method)
+    model_path = os.path.join(consts.models_path, descriptor)
     
-    pkl_model_path = os.path.join(model_path, f'{method}_kmeans.pkl')
-    kmeans = pickle.load(open(pkl_model_path, "rb"))
+    pkl_model_path = os.path.join(model_path, f'{descriptor}_kmeans.pkl')
+    
+    kmeans = pickle.load(open(pkl_model_path, 'rb'))
 
-    arr_model_path = os.path.join(model_path, f'{method}_histogram.npy')
+    arr_model_path = os.path.join(model_path, f'{descriptor}_histogram.npy')
+    
     evaluated_histogram_list = np.load(arr_model_path)
 
-    details_file = pd.read_csv("details.csv", header=0)
+    details_file = pd.read_csv('details.csv', header=0)
 
-    img_folders_df = pd.DataFrame(details_file, columns=["path", "class"])
+    img_folders_df = pd.DataFrame(details_file, columns=['path', 'class'])
 
     img = cv2.imread(img_path)
 
-    filtered_img = functions.preprocess_image(img, descriptor=method)
+    filtered_img = functions.preprocess_image(img, descriptor=descriptor)
 
     partitioned_images = functions.partition_image(filtered_img)
 
@@ -39,13 +41,13 @@ def search_query(img_path: str, imgs_num: int = 10, method: str = 'original'):
     similarity_list = []
 
     for x in tqdm(
-        range(evaluated_histogram_list.shape[0]), desc="Calculating similarity"
+        range(evaluated_histogram_list.shape[0]), desc='Calculating similarity'
     ):
         similarity_result = functions.hist_match(
             query_histogram, evaluated_histogram_list[x]
         )
         similarity_list.append(
-            [similarity_result, img_folders_df["path"][x], img_folders_df["class"][x]]
+            [similarity_result, img_folders_df['path'][x], img_folders_df['class'][x]]
         )
 
     top_image_retrieved = sorted(similarity_list, reverse=True)[:imgs_num]

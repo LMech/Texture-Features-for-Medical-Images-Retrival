@@ -9,12 +9,15 @@ import consts
 import functions
 
 
-def train(method: str = "original"):
-    training_data = functions.load_preprocessed_data(method=method)
-    init = "k-means++"
+def train(descriptor: str):
+    training_data = functions.load_preprocessed_data(descriptor=descriptor)
+    init = 'k-means++'
     max_iter = 300
     n_init = 10
-
+    original_shape = training_data.shape
+    training_data = training_data.reshape(
+        original_shape[0] * original_shape[1], original_shape[2]
+    )
     kmeans = KMeans(
         n_clusters=consts.n_clusters,
         init=init,
@@ -22,30 +25,29 @@ def train(method: str = "original"):
         n_init=n_init,
         random_state=None,
     )
-    
+
     try:
-        print("training KMeans...")
+        print('training KMeans...')
         kmeans.fit(training_data)
     except ValueError as e:
         print(e)
 
-    model_path = functions.create_dirs(consts.models_path, method)
+    model_path = functions.create_dirs(consts.models_path, descriptor)
 
-    model_name = f"{method}_kmeans.pkl"
+    model_name = f'{descriptor}_kmeans.pkl'
 
-    print(f"Saving KMeans model as {model_name}")
+    print(f'Saving KMeans model as {model_name}')
 
     pkl_model_path = os.path.join(model_path, model_name)
 
-    pickle.dump(kmeans, open(pkl_model_path, "wb"))
-    imgs_num = training_data.shape[0] // training_data.shape[1]
+    pickle.dump(kmeans, open(pkl_model_path, 'wb'))
+    imgs_num = original_shape[0]
     evaluated_histogram_list = []
 
-    for i in tqdm(range(imgs_num), desc="Evaluting the training histogram"):
+    for i in tqdm(range(imgs_num), desc='Evaluting the training histogram'):
         evaluted_class = kmeans.predict(
             training_data[
-                (i * training_data.shape[1]) : (i * training_data.shape[1])
-                + training_data.shape[1]
+                (i * original_shape[1]) : (i * original_shape[1]) + original_shape[1]
             ]
         )
 
@@ -56,12 +58,12 @@ def train(method: str = "original"):
         evaluated_histogram_list.append(img_histogram)
 
     evaluated_histogram_list = np.array(evaluated_histogram_list)
-    
-    arr_name = f"{method}_histogram.npy"
-    
+
+    arr_name = f'{descriptor}_histogram.npy'
+
     arr_model_path = os.path.join(model_path, arr_name)
-    
+
     np.save(arr_model_path, evaluated_histogram_list)
 
 
-train()
+train('hog')

@@ -1,25 +1,48 @@
 import cv2
 import matplotlib.pyplot as plt
-from skimage.feature import hog
 import numpy as np
+from skimage.feature import hog
 
-img = cv2.imread("tutorials_code/DSS/lab3/zebra.jpg")
+img = cv2.imread("dataset/1/3133182.jpg")
 
 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 fd, hogimage = hog(
-    img, orientations=0, pixels_per_cell=(8, 8), cells_per_block=(1, 1), visualize=True
+    img,
+    orientations=8,
+    pixels_per_cell=(16, 16),
+    cells_per_block=(1, 1),
+    visualize=True,
 )
+cv2.imshow("img1", hogimage)
+
+_, hogimage = hog(
+    img,
+    orientations=16,
+    pixels_per_cell=(16, 16),
+    cells_per_block=(1, 1),
+    visualize=True,
+)
+cv2.imshow("img2", hogimage)
 
 fd, hogimage = hog(
-    hogimage,
-    orientations=int(np.pi / 2 * 360),
-    pixels_per_cell=(8, 8),
+    img,
+    orientations=8,
+    pixels_per_cell=(32, 32),
+    cells_per_block=(1, 1),
+    visualize=True,
+)
+cv2.imshow("img3", hogimage)
+
+fd, hogimage = hog(
+    img,
+    orientations=16,
+    pixels_per_cell=(32, 32),
     cells_per_block=(1, 1),
     visualize=True,
 )
 
 
-cv2.imshow("img", hogimage)
+cv2.imshow("img4", hogimage)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

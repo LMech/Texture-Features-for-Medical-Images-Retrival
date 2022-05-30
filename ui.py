@@ -20,7 +20,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("DSS Project")
+        self.setWindowTitle('DSS Project')
 
         self.layout = QVBoxLayout()
         self.layout2 = QHBoxLayout()
@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.main_img = QLabel()
 
         self.layout.addWidget(self.main_img)
-        button = QPushButton("Press Me!")
+        button = QPushButton('Press Me!')
         button.setCheckable(True)
         button.clicked.connect(self.the_button_was_clicked)
 
@@ -42,11 +42,11 @@ class MainWindow(QMainWindow):
 
     def the_button_was_clicked(self):
         file_name = QFileDialog.getOpenFileName(
-            self, caption="Open Image", filter=("Image Files (*.png *.jpg *.bmp)")
+            self, caption='Open Image', filter=('Image Files (*.png *.jpg *.bmp)')
         )
         pixmap = QPixmap(file_name[0])
         self.main_img.setPixmap(pixmap)
-        for res in query_backend.search_query(file_name[0]):
+        for res in query_backend.search_query(file_name[0], 'original'):
             print(res)
             main_img = QLabel()
             pixmap = QPixmap(res[1])
