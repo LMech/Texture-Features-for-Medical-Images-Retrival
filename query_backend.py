@@ -1,3 +1,4 @@
+import os
 import pickle
 
 import cv2
@@ -9,11 +10,15 @@ import consts
 import functions
 
 
-def search_query(img_path: str, imgs_num: int = 10):
+def search_query(img_path: str, imgs_num: int = 10, method: str = 'original'):
 
-    kmeans = pickle.load(open("kmeans.pkl", "rb"))
+    model_path = os.path.join(consts.models_path, method)
+    
+    pkl_model_path = os.path.join(model_path, f'{method}_kmeans.pkl')
+    kmeans = pickle.load(open(pkl_model_path, "rb"))
 
-    evaluated_histogram_list = np.load("evaluated_histogram_list.npy")
+    arr_model_path = os.path.join(model_path, f'{method}_histogram.npy')
+    evaluated_histogram_list = np.load(arr_model_path)
 
     details_file = pd.read_csv("details.csv", header=0)
 
@@ -21,17 +26,7 @@ def search_query(img_path: str, imgs_num: int = 10):
 
     img = cv2.imread(img_path)
 
-    # Convert to greyscale
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Apply Gabor filter
-    filtered_gabor = functions.apply_gabor_filter(img)
-
-    # Apply Schmid filter
-    filtered_shmid = functions.apply_schmid_filter(img)
-
-    # Merge the 2 filtered Images
-    filtered_img = filtered_gabor + filtered_shmid
+    filtered_img = functions.preprocess_image(img, descriptor=method)
 
     partitioned_images = functions.partition_image(filtered_img)
 

@@ -1,4 +1,6 @@
 import csv
+import os
+from queue import Empty
 
 import cv2
 import numpy as np
@@ -118,12 +120,12 @@ def apply_gabor_filter(img: cv2.Mat) -> cv2.Mat:
     return filtered_img
 
 
-def load_preprocessed_data(reshape: bool = True) -> np.ndarray:
+def load_preprocessed_data(method:str, reshape: bool = True) -> np.ndarray:
     details_file = pd.read_csv("details.csv", header=0)
-    img_folders_df = pd.DataFrame(details_file, columns=["preprocessed_path"])
+    img_folders_df = pd.DataFrame(details_file, columns=[method])
     vectors_list = []
     for i in tqdm(range(len(img_folders_df)), desc="Loading the data"):
-        file_path = img_folders_df["preprocessed_path"][i]
+        file_path = img_folders_df[method][i]
         np_array = np.load(file_path)
         vectors_list.append(np_array)
 
@@ -149,3 +151,24 @@ def write_csv(new_data: dict):
     with open("details.csv", mode="a") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=consts.fieldnames)
         writer.writerow(new_data)
+
+
+def preprocess_image(img: cv2.Mat, descriptor: str = "original") -> cv2.Mat:
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if descriptor == "original":
+        # Apply Gabor filter
+        filtered_gabor = apply_gabor_filter(img)
+        # Apply Schmid filter
+        filtered_shmid = apply_schmid_filter(img)
+        # Merge the 2 filtered Images
+        filtered_img = filtered_gabor + filtered_shmid
+        return filtered_img
+
+
+def create_dirs(*paths, dir_path: str = '') -> str:
+    if paths != ():
+        dir_path = os.path.join(*paths)
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    return dir_path

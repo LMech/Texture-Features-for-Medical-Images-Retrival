@@ -1,7 +1,7 @@
+import os
 import pickle
 
 import numpy as np
-import pandas as pd
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
@@ -9,8 +9,8 @@ import consts
 import functions
 
 
-def train():
-    training_data = functions.load_preprocessed_data()
+def train(method: str = "original"):
+    training_data = functions.load_preprocessed_data(method=method)
     init = "k-means++"
     max_iter = 300
     n_init = 10
@@ -22,15 +22,22 @@ def train():
         n_init=n_init,
         random_state=None,
     )
-    print("training KMeans...")
+    
     try:
+        print("training KMeans...")
         kmeans.fit(training_data)
-        model_name = "kmeans.pkl"
-        print(f"Saving KMeans model as {model_name}")
-        pickle.dump(kmeans, open(model_name, "wb"))
     except ValueError as e:
         print(e)
 
+    model_path = functions.create_dirs(consts.models_path, method)
+
+    model_name = f"{method}_kmeans.pkl"
+
+    print(f"Saving KMeans model as {model_name}")
+
+    pkl_model_path = os.path.join(model_path, model_name)
+
+    pickle.dump(kmeans, open(pkl_model_path, "wb"))
     imgs_num = training_data.shape[0] // training_data.shape[1]
     evaluated_histogram_list = []
 
@@ -49,8 +56,12 @@ def train():
         evaluated_histogram_list.append(img_histogram)
 
     evaluated_histogram_list = np.array(evaluated_histogram_list)
-
-    np.save("evaluated_histogram_list.npy", evaluated_histogram_list)
+    
+    arr_name = f"{method}_histogram.npy"
+    
+    arr_model_path = os.path.join(model_path, arr_name)
+    
+    np.save(arr_model_path, evaluated_histogram_list)
 
 
 train()
