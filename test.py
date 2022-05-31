@@ -1,48 +1,61 @@
-import cv2
-import matplotlib.pyplot as plt
-import numpy as np
-from skimage.feature import hog
+import sys
+import time
 
-img = cv2.imread("dataset/1/3133182.jpg")
-
-img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-fd, hogimage = hog(
-    img,
-    orientations=8,
-    pixels_per_cell=(16, 16),
-    cells_per_block=(1, 1),
-    visualize=True,
-)
-cv2.imshow("img1", hogimage)
-
-_, hogimage = hog(
-    img,
-    orientations=16,
-    pixels_per_cell=(16, 16),
-    cells_per_block=(1, 1),
-    visualize=True,
-)
-cv2.imshow("img2", hogimage)
-
-fd, hogimage = hog(
-    img,
-    orientations=8,
-    pixels_per_cell=(32, 32),
-    cells_per_block=(1, 1),
-    visualize=True,
-)
-cv2.imshow("img3", hogimage)
-
-fd, hogimage = hog(
-    img,
-    orientations=16,
-    pixels_per_cell=(32, 32),
-    cells_per_block=(1, 1),
-    visualize=True,
+from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt6.QtWidgets import (
+    QApplication,
+    QProgressBar,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
 
 
-cv2.imshow("img4", hogimage)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+class Thread(QThread):
+    _signal = pyqtSignal(int)
+
+    def __init__(self):
+        super(Thread, self).__init__()
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        for i in range(100):
+            time.sleep(0.1)
+            self._signal.emit(i)
+
+
+class Example(QWidget):
+    def __init__(self):
+        super(Example, self).__init__()
+        self.setWindowTitle("QProgressBar")
+        self.btn = QPushButton("Click me")
+        self.btn.clicked.connect(self.btnFunc)
+        self.pbar = QProgressBar(self)
+        self.pbar.setValue(70)
+        self.resize(300, 100)
+        self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.pbar)
+        self.vbox.addWidget(self.btn)
+        self.setLayout(self.vbox)
+        self.show()
+
+    def btnFunc(self):
+        self.thread = Thread()
+        self.thread._signal.connect(self.signal_accept)
+        self.thread.start()
+        self.btn.setEnabled(False)
+
+    def signal_accept(self, msg):
+        self.pbar.setValue(int(msg))
+        if self.pbar.value() == 99:
+            self.pbar.setValue(0)
+            self.btn.setEnabled(True)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    ex = Example()
+    ex.show()
+    sys.exit(app.exec())

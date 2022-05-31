@@ -22,11 +22,12 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.radio_buttons = ["Original", "HoG"]
         self.bottom_gallery = []
-        self.setWindowTitle("My App")
+        self.setWindowTitle("DSS Project")
 
         self.layout = QGridLayout()
+        self.layout.setSpacing(4)
 
-        upload_button = QPushButton("Upload image")
+        upload_button = QPushButton("Choose image")
         upload_button.setCheckable(True)
         upload_button.clicked.connect(self.upload_image)
         self.layout.addWidget(upload_button, 0, 0)
@@ -50,26 +51,15 @@ class MainWindow(QMainWindow):
 
         self.img_path_label = QLabel("No chosen images")
         self.layout.addWidget(
-            self.img_path_label,
-            2,
-            0,
-            1,
-            4
+            self.img_path_label, 2, 0, 1, -1, Qt.AlignmentFlag.AlignCenter
         )
 
         self.img = QLabel()
-        self.change_img(self.img)
-        self.layout.addWidget(self.img, 3, 0)
+        self.change_img(self.img, width=240, height=240)
+        self.layout.addWidget(self.img, 3, 0, 1, -1, Qt.AlignmentFlag.AlignCenter)
 
-        for i in range(10):
-            img = QLabel()
-            self.change_img(img)
-            self.layout.addWidget(img, 4, i)
-            sim = QLabel()
-            self.layout.addWidget(sim, 5, i)
-            cls = QLabel()
-            self.layout.addWidget(cls, 6, i)
-            self.bottom_gallery.append([img, sim, cls])
+        self.make_img_col(4)
+        self.make_img_col(7)
 
         widget = QWidget()
         widget.setLayout(self.layout)
@@ -80,7 +70,7 @@ class MainWindow(QMainWindow):
             self, caption="Open Image", filter=("Image Files (*.png *.jpg *.bmp)")
         )
         self.img_path_label.setText(file_name[0])
-        self.change_img(self.img, file_name[0])
+        self.change_img(self.img, file_name[0], width=240, height=240)
 
     def query_search(self):
         if self.img_path_label.text() != "No chosen images":
@@ -91,9 +81,15 @@ class MainWindow(QMainWindow):
                 )
             )
 
-    def change_img(self, qlabel: QLabel, img_path: str = "imgs/place_holder.png"):
-        pixmap = QPixmap(img_path).scaled(128, 128)
-        qlabel.setPixmap(pixmap)
+    def change_img(
+        self,
+        qlabel: QLabel,
+        img_path: str = "imgs/place_holder.png",
+        width: int = 128,
+        height: int = 128,
+    ):
+        pixmap = QPixmap(img_path)
+        qlabel.setPixmap(pixmap.scaled(width, height))
 
     def get_descriptor(self):
         if self.original_radio_button.isChecked():
@@ -107,8 +103,20 @@ class MainWindow(QMainWindow):
             self.change_img(img, retrived_imgs[i][1])
             sim = self.bottom_gallery[i][1]
             sim.setText(f"similarity: {int(retrived_imgs[i][0] * 100)}%")
+            sim.setStyleSheet("color: green")
             cls = self.bottom_gallery[i][2]
             cls.setText(f"class: {retrived_imgs[i][2]}")
+
+    def make_img_col(self, col: int):
+        for i in range(5):
+            img = QLabel()
+            self.change_img(img)
+            self.layout.addWidget(img, col, i)
+            sim = QLabel()
+            self.layout.addWidget(sim, col + 1, i, 1, 1, Qt.AlignmentFlag.AlignCenter)
+            cls = QLabel()
+            self.layout.addWidget(cls, col + 2, i, 1, 1, Qt.AlignmentFlag.AlignCenter)
+            self.bottom_gallery.append([img, sim, cls])
 
 
 app = QApplication(sys.argv)
