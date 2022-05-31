@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from halo import Halo
 
 import consts
 import helpers
@@ -24,7 +25,7 @@ def preprocess(descriptor: str):
         )
 
     for i in tqdm(
-        range(len(details_df)), desc=f"Preprocessing using the {descriptor} descriptor"
+        range(len(details_df)), desc=f"Preprocessing using the {descriptor} descriptor", colour='cyan'
     ):
 
         img = cv2.imread(details_df.at[i, "path"])
@@ -42,8 +43,9 @@ def preprocess(descriptor: str):
         )
 
         np.save(ary_output_path, partitioned_imgs)
-
-    print(
+        
+    spinner = Halo(spinner='dots')
+    spinner.succeed(
         f"The preprocessed data successfully saved to {os.path.abspath(descriptor_path)}"
     )
 

@@ -41,7 +41,9 @@ def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
     similarity_list = []
 
     for x in tqdm(
-        range(evaluated_histogram_list.shape[0]), desc="Calculating similarity"
+        range(evaluated_histogram_list.shape[0]),
+        desc="Calculating similarity",
+        colour="cyan",
     ):
         similarity_result = helpers.hist_match(
             query_histogram, evaluated_histogram_list[x]

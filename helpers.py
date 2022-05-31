@@ -181,7 +181,9 @@ def load_preprocessed_data(descriptor: str) -> np.ndarray:
 
     vectors_list = []
     for i in tqdm(
-        range(len(details_df)), desc=f"Loading the {descriptor} preprocessed data"
+        range(len(details_df)),
+        desc=f"Loading the {descriptor} preprocessed data",
+        colour="cyan",
     ):
         name = str(details_df.at[i, "name"])
         ary_path = os.path.join(
