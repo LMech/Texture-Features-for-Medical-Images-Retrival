@@ -10,34 +10,42 @@ import helpers
 
 
 def preprocess(descriptor: str):
-    details_df = pd.read_csv('details.csv')
+    details_df = pd.read_csv(consts.details_path)
+
+    descriptor_path = os.path.join(
+        consts.preprocessed_dataset_path,
+        descriptor,
+    )
 
     for dataset_class in consts.dataset_classes:
         helpers.create_dirs(
-            consts.preprocessed_dataset_path,
-            descriptor,
+            descriptor_path,
             dataset_class,
         )
 
-    for i in tqdm(range(len(details_df)), desc=f'Preprocessing using {descriptor} descriptor'):
+    for i in tqdm(
+        range(len(details_df)), desc=f"Preprocessing using the {descriptor} descriptor"
+    ):
 
-        img = cv2.imread(details_df.at[i, 'path'])
+        img = cv2.imread(details_df.at[i, "path"])
 
         filtered_imgs = helpers.preprocess_image(img, descriptor)
-        
+
         partitioned_imgs = helpers.partition_image(filtered_imgs)
-        
-        img_name = os.path.splitext(details_df.at[i, 'name'])[0]
+
+        name = str(details_df.at[i, "name"])
 
         ary_output_path = os.path.join(
-            consts.preprocessed_dataset_path,
-            descriptor,
-            str(details_df.at[i, 'class']),
-            f'{img_name}.npy',
+            descriptor_path,
+            str(details_df.at[i, "class"]),
+            f"{name}.npy",
         )
-        details_df.at[i, descriptor] = ary_output_path
+
         np.save(ary_output_path, partitioned_imgs)
-    details_df.to_csv('details.csv')
+
+    print(
+        f"The preprocessed data successfully saved to {os.path.abspath(descriptor_path)}"
+    )
 
 
-preprocess('hog')
+preprocess("original")

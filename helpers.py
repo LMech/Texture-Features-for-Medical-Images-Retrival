@@ -6,6 +6,8 @@ import pandas as pd
 from skimage.feature import hog
 from tqdm import tqdm
 
+import consts
+
 
 def partition_image(
     img_list: list[cv2.Mat], horizontal_patch: int = 64, vertical_patch: int = 64
@@ -31,6 +33,7 @@ def partition_image(
                 patches.append(vector)
 
     return np.array(patches)
+
 
 def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray:
     """Generate a kernel according to Cordelia Schmid's
@@ -63,8 +66,9 @@ def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray
 
     return f
 
+
 def apply_schmid_filter(img: cv2.Mat) -> list[cv2.Mat]:
-    """Applies set of schmid filters to the image 
+    """Applies set of schmid filters to the image
 
     Args:
         img (cv2.Mat): Original image
@@ -88,8 +92,9 @@ def apply_schmid_filter(img: cv2.Mat) -> list[cv2.Mat]:
         filtered_imgs_list.append(filtered_img)
     return filtered_imgs_list
 
+
 def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
-    """Applies set of gabor filters to the image 
+    """Applies set of gabor filters to the image
 
     Args:
         img (cv2.Mat): Original image
@@ -132,6 +137,7 @@ def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
         filtered_img_list.append(filtered_img)
     return filtered_img_list
 
+
 def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
     """Applies HoG descriptor with different parameters
 
@@ -160,6 +166,7 @@ def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
 
     return filtered_imgs_list
 
+
 def load_preprocessed_data(descriptor: str) -> np.ndarray:
     """Load preprocessed data from the project files
     according to specific descriptor
@@ -170,18 +177,29 @@ def load_preprocessed_data(descriptor: str) -> np.ndarray:
     Returns:
         np.ndarray: Preprocessed data
     """
-    details_file = pd.read_csv('details.csv', header=0)
-    img_folders_df = pd.DataFrame(details_file, columns=[descriptor])
+    details_df = pd.read_csv(consts.details_path, header=0)
+
     vectors_list = []
-    for i in tqdm(range(len(img_folders_df)), desc=f'Loading the {descriptor} preprocessed data'):
-        file_path = img_folders_df[descriptor][i]
-        np_array = np.load(file_path)
+    for i in tqdm(
+        range(len(details_df)), desc=f"Loading the {descriptor} preprocessed data"
+    ):
+        name = str(details_df.at[i, "name"])
+        ary_path = os.path.join(
+            consts.preprocessed_dataset_path,
+            descriptor,
+            str(details_df.at[i, "class"]),
+            f"{name}.npy",
+        )
+
+        np_array = np.load(ary_path)
+
         vectors_list.append(np_array)
 
     vectors_list = np.array(vectors_list)
     return vectors_list
 
-def hist_match(query_hist: np.ndarray, dataset_image_hist: np.ndarray)-> float:
+
+def hist_match(query_hist: np.ndarray, dataset_image_hist: np.ndarray) -> float:
     """Calculates histogram similarity between
     2 histograms
 
@@ -216,7 +234,7 @@ def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
         list[cv2.Mat]: List of filtered images
     """
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if descriptor == 'original':
+    if descriptor == "original":
         # Apply Gabor filter
         filtered_gabor = apply_gabor_filter(img)
         # Apply Schmid filter
@@ -224,12 +242,13 @@ def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
         # Merge the 2 filtered Images
         filtered_img = filtered_gabor + filtered_shmid
         return filtered_img
-    elif descriptor == 'hog':
+    elif descriptor == "hog":
         filtered_img = apply_hog_descriptor(img)
         return filtered_img
 
     else:
-        raise ValueError('The value you entered is not exist')
+        raise ValueError("The value you entered is not exist")
+
 
 def create_dirs(*paths) -> str:
     """Perform safe joining and making of
