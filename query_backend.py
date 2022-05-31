@@ -1,13 +1,13 @@
 from os.path import join
 from pickle import load as pkl_load
 
+import pandas as pd
 from cv2 import imread
 from numpy import histogram, load
-import pandas as pd
 from tqdm import tqdm
 
-from consts import models_path, details_path, n_clusters
-from helpers import preprocess_img, partition_img, hist_match
+from consts import details_path, models_path, n_clusters
+from helpers import hist_match, partition_img, preprocess_img
 
 
 def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
@@ -40,11 +40,7 @@ def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
 
     similarity_list = []
 
-    for x in tqdm(
-        range(evaluated_histogram_list.shape[0]),
-        desc="Calculating similarity",
-        colour="cyan",
-    ):
+    for x in range(evaluated_histogram_list.shape[0]):
         similarity_result = hist_match(query_histogram, evaluated_histogram_list[x])
         similarity_list.append(
             [similarity_result, img_folders_df["path"][x], img_folders_df["class"][x]]

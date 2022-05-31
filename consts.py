@@ -15,4 +15,6 @@ details_df = read_csv(
     dtype={"name": str, "class": str},
 )
 
+classes_cnt = details_df["class"].value_counts()
+
 n_clusters = 200
