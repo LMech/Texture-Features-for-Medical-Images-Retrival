@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import consts
-import functions
+import helpers
 
 
 def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
@@ -28,9 +28,9 @@ def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
 
     img = cv2.imread(img_path)
 
-    filtered_img = functions.preprocess_image(img, descriptor=descriptor)
+    filtered_img = helpers.preprocess_image(img, descriptor=descriptor)
 
-    partitioned_images = functions.partition_image(filtered_img)
+    partitioned_images = helpers.partition_image(filtered_img)
 
     classified_image = kmeans.predict(partitioned_images)
 
@@ -43,7 +43,7 @@ def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
     for x in tqdm(
         range(evaluated_histogram_list.shape[0]), desc='Calculating similarity'
     ):
-        similarity_result = functions.hist_match(
+        similarity_result = helpers.hist_match(
             query_histogram, evaluated_histogram_list[x]
         )
         similarity_list.append(

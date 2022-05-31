@@ -6,14 +6,14 @@ import pandas as pd
 from tqdm import tqdm
 
 import consts
-import functions
+import helpers
 
 
 def preprocess(descriptor: str):
     details_df = pd.read_csv('details.csv')
 
     for dataset_class in consts.dataset_classes:
-        functions.create_dirs(
+        helpers.create_dirs(
             consts.preprocessed_dataset_path,
             descriptor,
             dataset_class,
@@ -23,9 +23,9 @@ def preprocess(descriptor: str):
 
         img = cv2.imread(details_df.at[i, 'path'])
 
-        filtered_imgs = functions.preprocess_image(img, descriptor)
+        filtered_imgs = helpers.preprocess_image(img, descriptor)
         
-        partitioned_imgs = functions.partition_image(filtered_imgs)
+        partitioned_imgs = helpers.partition_image(filtered_imgs)
         
         img_name = os.path.splitext(details_df.at[i, 'name'])[0]
 

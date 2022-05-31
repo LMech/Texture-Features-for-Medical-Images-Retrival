@@ -6,11 +6,11 @@ from sklearn.cluster import KMeans
 from tqdm import tqdm
 
 import consts
-import functions
+import helpers
 
 
 def train(descriptor: str):
-    training_data = functions.load_preprocessed_data(descriptor=descriptor)
+    training_data = helpers.load_preprocessed_data(descriptor=descriptor)
     init = 'k-means++'
     max_iter = 300
     n_init = 10
@@ -32,7 +32,7 @@ def train(descriptor: str):
     except ValueError as e:
         print(e)
 
-    model_path = functions.create_dirs(consts.models_path, descriptor)
+    model_path = helpers.create_dirs(consts.models_path, descriptor)
 
     model_name = f'{descriptor}_kmeans.pkl'
 

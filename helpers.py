@@ -10,17 +10,18 @@ from tqdm import tqdm
 def partition_image(
     img_list: list[cv2.Mat], horizontal_patch: int = 64, vertical_patch: int = 64
 ) -> np.ndarray:
-    '''Partition a list of images symmetrically
+    """Partition a list of images symmetrically
     according to the provided patch dimensions
+    and perform vertical projection to the patches
 
     Args:
-        img_list (cv2.Mat): Image
-        horizontal_patch (int): Width of each patch
-        vertical_patch (int): Height of each patch
+        img_list (list[cv2.Mat]): List of images to partition
+        horizontal_patch (int, optional): Width of each patch. Defaults to 64.
+        vertical_patch (int, optional): Height of each patch. Defaults to 64.
 
     Returns:
-        List: The partitioned patches
-    '''
+        np.ndarray: Numpy list of concatenated vertical projected patches
+    """
     patches = []
     for img in img_list:
         for x in range(0, img.shape[0] + 1 - horizontal_patch, horizontal_patch):
@@ -31,9 +32,8 @@ def partition_image(
 
     return np.array(patches)
 
-
 def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray:
-    '''Generate a kernel according to Cordelia Schmid's
+    """Generate a kernel according to Cordelia Schmid's
     paper (inria-00548274) for a Gabor-like filter
 
     Args:
@@ -43,7 +43,7 @@ def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray
 
     Returns:
         np.array: Normalized kernel
-    '''
+    """
     end_point = int((kernel_size - 1) / 2)
     x = np.linspace(-end_point, end_point, kernel_size)
     y = np.linspace(-end_point, end_point, kernel_size)
@@ -63,9 +63,15 @@ def generate_schmid_kernel(kernel_size: int, tau: int, sigma: int) -> np.ndarray
 
     return f
 
-
 def apply_schmid_filter(img: cv2.Mat) -> list[cv2.Mat]:
+    """Applies set of schmid filters to the image 
 
+    Args:
+        img (cv2.Mat): Original image
+
+    Returns:
+        list[cv2.Mat]: List of filtered images
+    """
     schmid_kernel_size = 49
 
     schmid_filter_parameter_values = [
@@ -82,8 +88,15 @@ def apply_schmid_filter(img: cv2.Mat) -> list[cv2.Mat]:
         filtered_imgs_list.append(filtered_img)
     return filtered_imgs_list
 
-
 def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
+    """Applies set of gabor filters to the image 
+
+    Args:
+        img (cv2.Mat): Original image
+
+    Returns:
+        list[cv2.Mat]: List of filtered images
+    """
     gabor_kernel_size = (15, 15)
 
     gabor_filter_parameter_values = [
@@ -119,8 +132,15 @@ def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
         filtered_img_list.append(filtered_img)
     return filtered_img_list
 
-
 def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
+    """Applies HoG descriptor with different parameters
+
+    Args:
+        img (cv2.Mat): Original
+
+    Returns:
+        list[cv2.Mat]: List of filtered images
+    """
     hog_decriptor_parameter_values = [
         [8, (16, 16)],
         [8, (32, 32)],
@@ -140,8 +160,16 @@ def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
 
     return filtered_imgs_list
 
-
 def load_preprocessed_data(descriptor: str) -> np.ndarray:
+    """Load preprocessed data from the project files
+    according to specific descriptor
+
+    Args:
+        descriptor (str): Name of preprocessing descriptor
+
+    Returns:
+        np.ndarray: Preprocessed data
+    """
     details_file = pd.read_csv('details.csv', header=0)
     img_folders_df = pd.DataFrame(details_file, columns=[descriptor])
     vectors_list = []
@@ -153,18 +181,40 @@ def load_preprocessed_data(descriptor: str) -> np.ndarray:
     vectors_list = np.array(vectors_list)
     return vectors_list
 
+def hist_match(query_hist: np.ndarray, dataset_image_hist: np.ndarray)-> float:
+    """Calculates histogram similarity between
+    2 histograms
 
-def hist_match(query_hist, image_hist):
-    result = 0
+    Args:
+        query_hist (np.ndarray): First histogram in comparison
+        dataset_image_hist (np.ndarray): Second histogram in comparison
+
+    Returns:
+        float: Comparsion result (0:1)
+    """
+    result = 0.0
     for i in range(query_hist.size):
-        if query_hist[i] <= image_hist[i]:
+        if query_hist[i] <= dataset_image_hist[i]:
             result = result + query_hist[i]
         else:
-            result = result + image_hist[i]
+            result = result + dataset_image_hist[i]
     return result
 
 
 def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
+    """Perform set of preprocessing steps according
+    to different descriptors
+
+    Args:
+        img (cv2.Mat): Original image
+        descriptor (str): Descriptor name
+
+    Raises:
+        ValueError: Chosen descriptor is not exist
+
+    Returns:
+        list[cv2.Mat]: List of filtered images
+    """
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if descriptor == 'original':
         # Apply Gabor filter
@@ -181,10 +231,14 @@ def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
     else:
         raise ValueError('The value you entered is not exist')
 
+def create_dirs(*paths) -> str:
+    """Perform safe joining and making of
+    directory
 
-def create_dirs(*paths, dir_path: str = '') -> str:
-    if paths != ():
-        dir_path = os.path.join(*paths)
+    Returns:
+        str: Path of the generated directory
+    """
+    dir_path = os.path.join(*paths)
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 
