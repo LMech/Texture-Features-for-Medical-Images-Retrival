@@ -1,4 +1,4 @@
-import sys
+from sys import argv
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
@@ -20,7 +20,7 @@ import query_backend
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.radio_buttons = ["Original", "HoG"]
+        self.radio_buttons = ["Original", "HOG"]
         self.bottom_gallery = []
         self.setWindowTitle("DSS Project")
 
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow):
             self.bottom_gallery.append([img, sim, cls])
 
 
-app = QApplication(sys.argv)
+app = QApplication(argv)
 
 window = MainWindow()
 window.show()

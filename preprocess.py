@@ -1,52 +1,53 @@
-import os
+from os.path import abspath, join
 
-import cv2
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
+from cv2 import imread
 from halo import Halo
+from numpy import save
+from tqdm import tqdm
 
-import consts
-import helpers
+from consts import dataset_classes, details_df, preprocessed_dataset_path
+from helpers import create_dirs, partition_img, preprocess_img
 
 
 def preprocess(descriptor: str):
-    details_df = pd.read_csv(consts.details_path)
-
-    descriptor_path = os.path.join(
-        consts.preprocessed_dataset_path,
+    
+    descriptor_path = join(
+        preprocessed_dataset_path,
         descriptor,
     )
 
-    for dataset_class in consts.dataset_classes:
-        helpers.create_dirs(
+    for dataset_class in dataset_classes:
+        create_dirs(
             descriptor_path,
             dataset_class,
         )
 
-    for i in tqdm(
-        range(len(details_df)), desc=f"Preprocessing using the {descriptor} descriptor", colour='cyan'
+    for _, row in tqdm(
+        details_df.iterrows(),
+        desc=f"Preprocessing using the {descriptor} descriptor",
+        colour="cyan",
+        total=len(details_df),
     ):
 
-        img = cv2.imread(details_df.at[i, "path"])
+        img = imread(row["path"])
 
-        filtered_imgs = helpers.preprocess_image(img, descriptor)
+        filtered_imgs = preprocess_img(img, descriptor)
 
-        partitioned_imgs = helpers.partition_image(filtered_imgs)
+        partitioned_imgs = partition_img(filtered_imgs)
 
-        name = str(details_df.at[i, "name"])
+        name = row["name"]
 
-        ary_output_path = os.path.join(
+        ary_output_path = join(
             descriptor_path,
-            str(details_df.at[i, "class"]),
+            row["class"],
             f"{name}.npy",
         )
 
-        np.save(ary_output_path, partitioned_imgs)
-        
-    spinner = Halo(spinner='dots')
+        save(ary_output_path, partitioned_imgs)
+
+    spinner = Halo(spinner="dots")
     spinner.succeed(
-        f"The preprocessed data successfully saved to {os.path.abspath(descriptor_path)}"
+        f"The preprocessed data successfully saved to {abspath(descriptor_path)}"
     )
 
 

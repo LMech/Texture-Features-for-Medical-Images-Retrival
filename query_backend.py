@@ -1,41 +1,41 @@
-import os
-import pickle
+from os.path import join
+from pickle import load as pkl_load
 
-import cv2
-import numpy as np
+from cv2 import imread
+from numpy import histogram, load
 import pandas as pd
 from tqdm import tqdm
 
-import consts
-import helpers
+from consts import models_path, details_path, n_clusters
+from helpers import preprocess_img, partition_img, hist_match
 
 
 def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
 
-    model_path = os.path.join(consts.models_path, descriptor)
+    model_path = join(models_path, descriptor)
 
-    pkl_model_path = os.path.join(model_path, f"{descriptor}_kmeans.pkl")
+    pkl_model_path = join(model_path, f"{descriptor}_kmeans.pkl")
 
-    kmeans = pickle.load(open(pkl_model_path, "rb"))
+    kmeans = pkl_load(open(pkl_model_path, "rb"))
 
-    arr_model_path = os.path.join(model_path, f"{descriptor}_histogram.npy")
+    arr_model_path = join(model_path, f"{descriptor}_histogram.npy")
 
-    evaluated_histogram_list = np.load(arr_model_path)
+    evaluated_histogram_list = load(arr_model_path)
 
-    details_file = pd.read_csv(consts.details_path, header=0)
+    details_file = pd.read_csv(details_path, header=0)
 
     img_folders_df = pd.DataFrame(details_file, columns=["path", "class"])
 
-    img = cv2.imread(img_path)
+    img = imread(img_path)
 
-    filtered_img = helpers.preprocess_image(img, descriptor=descriptor)
+    filtered_img = preprocess_img(img, descriptor=descriptor)
 
-    partitioned_images = helpers.partition_image(filtered_img)
+    partitioned_images = partition_img(filtered_img)
 
     classified_image = kmeans.predict(partitioned_images)
 
-    query_histogram, _ = np.histogram(
-        classified_image, bins=range(consts.n_clusters + 1), density=True
+    query_histogram, _ = histogram(
+        classified_image, bins=range(n_clusters + 1), density=True
     )
 
     similarity_list = []
@@ -45,9 +45,7 @@ def search_query(img_path: str, descriptor: str, imgs_num: int = 10):
         desc="Calculating similarity",
         colour="cyan",
     ):
-        similarity_result = helpers.hist_match(
-            query_histogram, evaluated_histogram_list[x]
-        )
+        similarity_result = hist_match(query_histogram, evaluated_histogram_list[x])
         similarity_list.append(
             [similarity_result, img_folders_df["path"][x], img_folders_df["class"][x]]
         )

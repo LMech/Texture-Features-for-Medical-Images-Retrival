@@ -1,4 +1,5 @@
-import os
+from os import makedirs
+from os.path import exists, join
 
 import cv2
 import numpy as np
@@ -6,10 +7,10 @@ import pandas as pd
 from skimage.feature import hog
 from tqdm import tqdm
 
-import consts
+from consts import details_df, preprocessed_dataset_path
 
 
-def partition_image(
+def partition_img(
     img_list: list[cv2.Mat], horizontal_patch: int = 64, vertical_patch: int = 64
 ) -> np.ndarray:
     """Partition a list of images symmetrically
@@ -139,7 +140,7 @@ def apply_gabor_filter(img: cv2.Mat) -> list[cv2.Mat]:
 
 
 def apply_hog_descriptor(img: cv2.Mat) -> list[cv2.Mat]:
-    """Applies HoG descriptor with different parameters
+    """Applies HOG descriptor with different parameters
 
     Args:
         img (cv2.Mat): Original
@@ -177,19 +178,18 @@ def load_preprocessed_data(descriptor: str) -> np.ndarray:
     Returns:
         np.ndarray: Preprocessed data
     """
-    details_df = pd.read_csv(consts.details_path, header=0)
-
     vectors_list = []
-    for i in tqdm(
-        range(len(details_df)),
+    for _, row in tqdm(
+        details_df.iterrows(),
         desc=f"Loading the {descriptor} preprocessed data",
         colour="cyan",
+        total=len(details_df),
     ):
-        name = str(details_df.at[i, "name"])
-        ary_path = os.path.join(
-            consts.preprocessed_dataset_path,
+        name = row["name"]
+        ary_path = join(
+            preprocessed_dataset_path,
             descriptor,
-            str(details_df.at[i, "class"]),
+            row["class"],
             f"{name}.npy",
         )
 
@@ -201,27 +201,27 @@ def load_preprocessed_data(descriptor: str) -> np.ndarray:
     return vectors_list
 
 
-def hist_match(query_hist: np.ndarray, dataset_image_hist: np.ndarray) -> float:
+def hist_match(query_hist: np.ndarray, dataset_img_hist: np.ndarray) -> float:
     """Calculates histogram similarity between
     2 histograms
 
     Args:
         query_hist (np.ndarray): First histogram in comparison
-        dataset_image_hist (np.ndarray): Second histogram in comparison
+        dataset_img_hist (np.ndarray): Second histogram in comparison
 
     Returns:
         float: Comparsion result (0:1)
     """
     result = 0.0
     for i in range(query_hist.size):
-        if query_hist[i] <= dataset_image_hist[i]:
+        if query_hist[i] <= dataset_img_hist[i]:
             result = result + query_hist[i]
         else:
-            result = result + dataset_image_hist[i]
+            result = result + dataset_img_hist[i]
     return result
 
 
-def preprocess_image(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
+def preprocess_img(img: cv2.Mat, descriptor: str) -> list[cv2.Mat]:
     """Perform set of preprocessing steps according
     to different descriptors
 
@@ -259,8 +259,8 @@ def create_dirs(*paths) -> str:
     Returns:
         str: Path of the generated directory
     """
-    dir_path = os.path.join(*paths)
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
+    dir_path = join(*paths)
+    if not exists(dir_path):
+        makedirs(dir_path)
 
     return dir_path
