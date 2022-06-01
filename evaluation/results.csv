@@ -1,0 +1,3 @@
+descriptor,percision_average,recall_average,arp,arr,fscore
+original,90.83,25.3,90.83,25.3,39.58
+hog,86.3,23.93,86.3,23.93,37.47

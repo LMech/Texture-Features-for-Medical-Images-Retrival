@@ -1,12 +1,12 @@
 import csv
-import sys
-from os.path import join
+from os.path import dirname, join
+from sys import path
 
 from tqdm import tqdm
 
-sys.path.append("../dss_project")
-from utils.consts import classes_cnt, details_df, models_path
+path.append(dirname(path[0]))
 from query_backend import search_query
+from utils.consts import classes_cnt, details_df, models_path
 
 
 def generate_labels(descriptor: str):
