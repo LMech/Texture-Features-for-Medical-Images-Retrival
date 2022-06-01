@@ -14,8 +14,6 @@ def calculate_metrics(descriptors: list[str]):
     with open(file_path, mode="w") as csv_file:
         fieldnames = [
             "descriptor",
-            "percision_average",
-            "recall_average",
             "arp",
             "arr",
             "fscore",
@@ -33,8 +31,6 @@ def calculate_metrics(descriptors: list[str]):
 
             row_map = {
                 "descriptor": descriptor,
-                "percision_average": round(labels_df["percision"].mean() * 100, 2),
-                "recall_average": round(labels_df["recall"].mean() * 100, 2),
                 "arp": arp,
                 "arr": arr,
                 "fscore": fscore,
