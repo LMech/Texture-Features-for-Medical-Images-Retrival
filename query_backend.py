@@ -6,8 +6,8 @@ from cv2 import imread
 from numpy import histogram, load
 from tqdm import tqdm
 
-from consts import details_path, models_path, n_clusters
-from helpers import hist_match, partition_img, preprocess_img
+from utils.consts import details_path, models_path, n_clusters
+from utils.helpers import hist_match, partition_img, preprocess_img
 
 
 def search_query(img_path: str, descriptor: str, imgs_num: int = 10):

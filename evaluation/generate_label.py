@@ -5,7 +5,7 @@ from os.path import join
 from tqdm import tqdm
 
 sys.path.append("../dss_project")
-from consts import classes_cnt, details_df, models_path
+from utils.consts import classes_cnt, details_df, models_path
 from query_backend import search_query
 
 

@@ -1,10 +1,12 @@
-import sys
+from sys import path
+from os.path import dirname as dir
 from os.path import join
+
+path.append(dir(path[0]))
 
 import pandas as pd
 
-sys.path.append("../dss_project")
-from consts import classes_cnt, details_df, models_path
+from utils.consts import models_path
 
 
 def calculate_metrics(descriptor: str):
@@ -25,6 +27,7 @@ def calculate_metrics(descriptor: str):
     ]
     print(descriptor)
     print(pd.DataFrame(data))
+
 
 calculate_metrics("original")
 calculate_metrics("hog")

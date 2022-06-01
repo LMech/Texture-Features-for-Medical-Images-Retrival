@@ -7,7 +7,7 @@ import pandas as pd
 from skimage.feature import hog
 from tqdm import tqdm
 
-from consts import details_df, preprocessed_dataset_path
+from utils.consts import details_df, preprocessed_dataset_path
 
 
 def partition_img(

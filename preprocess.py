@@ -5,8 +5,8 @@ from halo import Halo
 from numpy import save
 from tqdm import tqdm
 
-from consts import dataset_classes, details_df, preprocessed_dataset_path
-from helpers import create_dirs, partition_img, preprocess_img
+from utils.consts import dataset_classes, details_df, preprocessed_dataset_path
+from utils.helpers import create_dirs, partition_img, preprocess_img
 
 
 def preprocess(descriptor: str):

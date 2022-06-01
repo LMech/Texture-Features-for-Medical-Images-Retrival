@@ -6,8 +6,8 @@ from numpy import array, histogram, save
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
-from consts import models_path, n_clusters
-from helpers import create_dirs, load_preprocessed_data
+from utils.consts import models_path, n_clusters
+from utils.helpers import create_dirs, load_preprocessed_data
 
 
 def train(descriptor: str):
