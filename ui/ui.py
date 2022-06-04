@@ -1,4 +1,5 @@
-from sys import argv
+from os.path import dirname
+from sys import argv, path
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
@@ -14,7 +15,8 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-import query_backend
+path.append(dirname(path[0]))
+from query_backend import search_query
 
 
 class MainWindow(QMainWindow):
@@ -22,7 +24,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.radio_buttons = ["Original", "HOG"]
         self.bottom_gallery = []
-        self.setWindowTitle("DSS Project")
+        self.setWindowTitle("Medical Image Retrival")
 
         self.layout = QGridLayout()
         self.layout.setSpacing(4)
@@ -75,7 +77,7 @@ class MainWindow(QMainWindow):
     def query_search(self):
         if self.img_path_label.text() != "No chosen images":
             self.display_images(
-                query_backend.search_query(
+                search_query(
                     self.img_path_label.text(),
                     str(self.radio_buttons[self.get_descriptor()]).lower(),
                 )
@@ -84,7 +86,7 @@ class MainWindow(QMainWindow):
     def change_img(
         self,
         qlabel: QLabel,
-        img_path: str = "imgs/place_holder.png",
+        img_path: str = "ui/place_holder.png",
         width: int = 128,
         height: int = 128,
     ):

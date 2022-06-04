@@ -42,6 +42,8 @@ def calculate_metrics(descriptors: list[str]):
     plt.xlabel("Decriptor")
     plt.ylabel("Percentage %")
     plt.grid(True, linestyle="--", axis="y")
+    plt.xticks(rotation=0, ha='right')
+    plt.savefig("evaluation/calculated_metrics.svg")
     plt.show()
 
 

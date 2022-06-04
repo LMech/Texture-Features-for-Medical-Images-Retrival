@@ -1,4 +1,5 @@
 import csv
+from argparse import ArgumentParser
 from os.path import dirname, join
 from sys import path
 
@@ -49,4 +50,9 @@ def generate_labels(descriptor: str):
             writer.writerow(row_map)
 
 
-generate_labels("original")
+parser = ArgumentParser()
+parser.add_argument(
+    "descriptor", type=str, help="Specifity the descriptor to work with"
+)
+descriptor = parser.parse_args().descriptor
+generate_labels(descriptor)

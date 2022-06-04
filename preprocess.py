@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from os.path import abspath, join
 
 from cv2 import imread
@@ -10,7 +11,7 @@ from utils.helpers import create_dirs, partition_img, preprocess_img
 
 
 def preprocess(descriptor: str):
-    
+
     descriptor_path = join(
         preprocessed_dataset_path,
         descriptor,
@@ -51,4 +52,9 @@ def preprocess(descriptor: str):
     )
 
 
-preprocess("original")
+parser = ArgumentParser()
+parser.add_argument(
+    "descriptor", type=str, help="Specifity the descriptor to work with"
+)
+descriptor = parser.parse_args().descriptor
+preprocess(descriptor)

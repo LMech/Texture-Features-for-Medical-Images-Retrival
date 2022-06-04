@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from os.path import abspath, join
 from pickle import dump
 
@@ -65,4 +66,9 @@ def train(descriptor: str):
     spinner.succeed(f"Model files saved to {abspath(model_path)}")
 
 
-train("original")
+parser = ArgumentParser()
+parser.add_argument(
+    "descriptor", type=str, help="Specify the descriptor to work with"
+)
+descriptor = parser.parse_args().descriptor
+train(descriptor)
